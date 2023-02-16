@@ -6,6 +6,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ProgressBar
+import android.widget.Toast
 import androidx.core.os.bundleOf
 import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.fragment.findNavController
@@ -46,25 +47,19 @@ class NFTopHeadlinesFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         val app = activity?.application as NFApplication
-        val factory = NFViewModelFactory(app, app.topHeadlinesRepo)
-        headlinesVM = ViewModelProvider(this, factory).get(NFTopHeadlinesViewModel::class.java)
-        registerObserver()
-        binding.topHeadlinesRv.visibility = View.INVISIBLE
-        activity?.findViewById<ProgressBar>(R.id.progress_circular1)?.visibility = View.VISIBLE
+        headlinesVM = ViewModelProvider(this, NFViewModelFactory(app, app.topHeadlinesRepo))
+            .get(NFTopHeadlinesViewModel::class.java)
+        registerLiveDataObserver()
         headlinesVM?.getHeadLines(currentCountry)
+
         binding.refreshBtn.setOnClickListener {
-            binding.topHeadlinesRv.visibility = View.INVISIBLE
-            activity?.findViewById<ProgressBar>(R.id.progress_circular1)?.visibility = View.VISIBLE
             headlinesVM?.getHeadLines(currentCountry)
 
         }
     }
 
-    private fun registerObserver() {
+    private fun registerLiveDataObserver() {
         headlinesVM?.headLinesLiveData?.observe(viewLifecycleOwner) {
-            activity?.findViewById<ProgressBar>(R.id.progress_circular1)?.visibility =
-                View.INVISIBLE
-            binding.topHeadlinesRv.visibility = View.VISIBLE
             NFLogger.log(javaClass.name, it.toString())
             topHeadlinesAdapter = NFTopHeadlinesListAdapter(it,
                 object : NFTopHeadlinesListAdapter.NFOnNewsItemClickListener {
@@ -83,6 +78,18 @@ class NFTopHeadlinesFragment : Fragment() {
                 adapter = topHeadlinesAdapter
             }
         }
+        headlinesVM?.isLoadingLiveData?.observe(viewLifecycleOwner) {
+            hideOrShowProgressBar(it)
+        }
+        headlinesVM?.errorLiveData?.observe(viewLifecycleOwner) {
+            Toast.makeText(activity, "Error $it", Toast.LENGTH_LONG).show()
+        }
+    }
+
+    private fun hideOrShowProgressBar(show: Boolean) {
+        activity?.findViewById<ProgressBar>(R.id.progress_circular1)?.visibility =
+            if (show) View.VISIBLE else View.INVISIBLE
+        binding.topHeadlinesRv.visibility = if (show) View.INVISIBLE else View.VISIBLE
     }
 
     override fun onDestroyView() {
