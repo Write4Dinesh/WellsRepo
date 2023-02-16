@@ -11,6 +11,7 @@ import androidx.core.os.bundleOf
 import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import com.example.myapplication.NFApplication
 import com.example.myapplication.R
 import com.example.myapplication.viewmodel.NFTopHeadlinesViewModel
@@ -29,6 +30,7 @@ class NFTopHeadlinesFragment : Fragment() {
     private var topHeadlinesAdapter: NFTopHeadlinesListAdapter? = null
     private var headlinesVM: NFTopHeadlinesViewModel? = null
     private var currentCountry = "us"
+    private var swipeRefreshLayout: SwipeRefreshLayout? = null
 
     // This property is only valid between onCreateView and
     // onDestroyView.
@@ -55,6 +57,19 @@ class NFTopHeadlinesFragment : Fragment() {
         binding.refreshBtn.setOnClickListener {
             headlinesVM?.getHeadLines(currentCountry)
 
+        }
+
+    }
+
+    override fun onResume() {
+        configurePullToRefresh()
+        super.onResume()
+    }
+
+    private fun configurePullToRefresh() {
+        swipeRefreshLayout = activity?.findViewById(R.id.pullToRefresh)
+        swipeRefreshLayout?.setOnRefreshListener {
+            headlinesVM?.getHeadLines(currentCountry)
         }
     }
 
@@ -87,6 +102,9 @@ class NFTopHeadlinesFragment : Fragment() {
     }
 
     private fun hideOrShowProgressBar(show: Boolean) {
+        if (!show) {
+            swipeRefreshLayout?.isRefreshing = false
+        }
         activity?.findViewById<ProgressBar>(R.id.progress_circular1)?.visibility =
             if (show) View.VISIBLE else View.INVISIBLE
         binding.topHeadlinesRv.visibility = if (show) View.INVISIBLE else View.VISIBLE
