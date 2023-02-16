@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<network-security-config>
+    <domain-config>
+        <domain includeSubdomains="true">newsapi.org</domain>
+        <domain includeSubdomains="true">cnbcfm.com</domain>
+        <domain includeSubdomains="true">dailymail.co.uk</domain>
+        <domain includeSubdomains="true">cnn.com</domain>
+        <domain includeSubdomains="true">reuters.com</domain>
+
+        <trust-anchors>
+            <certificates src="@raw/my_ca"/>
+        </trust-anchors>
+    </domain-config>
+</network-security-config>
